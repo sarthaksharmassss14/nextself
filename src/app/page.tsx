@@ -330,7 +330,7 @@ export default function Home() {
         )}
 
         <footer className="mt-24 text-center text-white/20 text-xs">
-          Built with Groq Vision & Next.js • © 2026 GlowUp AI
+          Built with Groq Vision & Next.js • © 2026 NextSelf
         </footer>
       </div>
     </main>
