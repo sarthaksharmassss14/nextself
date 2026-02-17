@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Camera, Image as ImageIcon, Upload, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -11,9 +11,98 @@ interface ImageUploaderProps {
 export const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageSelected }) => {
     const [preview, setPreview] = useState<string | null>(null);
     const [isCameraActive, setIsCameraActive] = useState(false);
+    const [isFaceCorrect, setIsFaceCorrect] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
+
+    // Real face detection logic
+    useEffect(() => {
+        let detector: any = null;
+        let animationFrameId: number;
+        let isComponentMounted = true;
+
+        const setupDetector = async () => {
+            try {
+                // Ensure dependencies are loaded
+                const faceDetection = await import("@tensorflow-models/face-detection");
+                const tf = await import("@tensorflow/tfjs-core");
+                await import("@tensorflow/tfjs-backend-webgl");
+                await tf.setBackend("webgl");
+                await tf.ready();
+
+                const model = faceDetection.SupportedModels.MediaPipeFaceDetector;
+                detector = await faceDetection.createDetector(model, {
+                    runtime: "tfjs",
+                    maxFaces: 1,
+                    modelType: 'short' // Better for selfies
+                });
+
+                if (isComponentMounted && isCameraActive) {
+                    detectFace();
+                }
+            } catch (err) {
+                console.error("Face detection setup error:", err);
+            }
+        };
+
+        const detectFace = async () => {
+            if (!detector || !videoRef.current || !isCameraActive || !isComponentMounted) return;
+
+            try {
+                // Check if video is actually playing and has dimensions
+                if (videoRef.current.readyState < 2) {
+                    animationFrameId = requestAnimationFrame(detectFace);
+                    return;
+                }
+
+                const faces = await detector.estimateFaces(videoRef.current, { flipHorizontal: false });
+
+                if (faces.length > 0) {
+                    const face = faces[0];
+                    const box = face.box;
+                    const videoWidth = videoRef.current.videoWidth;
+                    const videoHeight = videoRef.current.videoHeight;
+
+                    // Relaxed constraints for better UX
+                    const faceCenterX = box.xMin + box.width / 2;
+                    const faceCenterY = box.yMin + box.height / 2;
+
+                    // Use 30% tolerance instead of 15%
+                    const centerToleranceX = videoWidth * 0.30;
+                    const centerToleranceY = videoHeight * 0.30;
+
+                    const isCentered = Math.abs(faceCenterX - videoWidth / 2) < centerToleranceX &&
+                        Math.abs(faceCenterY - videoHeight / 2) < centerToleranceY;
+
+                    // Face should be at least 20% of the screen height
+                    const minFaceSize = videoHeight * 0.20;
+                    const isLargeEnough = box.height > minFaceSize;
+
+                    setIsFaceCorrect(isCentered && isLargeEnough);
+                } else {
+                    setIsFaceCorrect(false);
+                }
+            } catch (err) {
+                console.warn("Detection frame error:", err);
+            }
+
+            if (isCameraActive && isComponentMounted) {
+                animationFrameId = requestAnimationFrame(detectFace);
+            }
+        };
+
+        if (isCameraActive) {
+            setupDetector();
+        } else {
+            setIsFaceCorrect(false);
+        }
+
+        return () => {
+            isComponentMounted = false;
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+        };
+    }, [isCameraActive]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -32,28 +121,38 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageSelected })
     };
 
     const startCamera = async () => {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({
-                video: {
-                    facingMode: "user",
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 }
-                }
-            });
+        const constraints = [
+            { video: { facingMode: "user", width: { ideal: 1280 }, height: { ideal: 720 } } },
+            { video: true }
+        ];
+
+        let stream = null;
+        let lastError: any = null;
+
+        for (const constraint of constraints) {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia(constraint);
+                if (stream) break;
+            } catch (err: any) {
+                lastError = err;
+                console.warn("Failed with constraint:", constraint, err);
+            }
+        }
+
+        if (stream) {
             setIsCameraActive(true);
             setTimeout(() => {
                 if (videoRef.current) {
                     videoRef.current.srcObject = stream;
                 }
             }, 100);
-        } catch (err: any) {
-            console.error("Camera error:", err);
-            if (err.name === "NotReadableError") {
-                alert("Camera is already in use by another application. Please close it and try again.");
-            } else if (err.name === "NotAllowedError") {
-                alert("Camera permission denied. Please allow camera access in your browser settings.");
+        } else {
+            if (lastError?.name === "NotReadableError") {
+                alert("Bhai, hardware busy hai. Kisi doosre app ne camera roka hua hai.");
+            } else if (lastError?.name === "NotAllowedError") {
+                alert("Browser ne camera block kiya hua hai.");
             } else {
-                alert("Could not start camera. Please try uploading a file instead.");
+                alert("Camera connect nahi ho raha.");
             }
             setIsCameraActive(false);
         }
@@ -81,6 +180,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageSelected })
         const stream = videoRef.current?.srcObject as MediaStream;
         stream?.getTracks().forEach(track => track.stop());
         setIsCameraActive(false);
+        setIsFaceCorrect(false);
     };
 
     const reset = () => {
@@ -93,55 +193,74 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageSelected })
             <AnimatePresence mode="wait">
                 {!preview && !isCameraActive && (
                     <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -20 }}
-                        className="glass p-8 rounded-3xl border-dashed border-2 flex flex-col items-center justify-center gap-6 cursor-pointer hover:bg-white/10 transition-colors"
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                        className="glass p-10 rounded-[40px] border-dashed border-2 flex flex-col items-center justify-center gap-8 cursor-pointer hover:bg-white/10 transition-all group"
                         onClick={() => fileInputRef.current?.click()}
                     >
-                        <div className="w-16 h-16 rounded-full gradient-bg flex items-center justify-center shadow-lg shadow-primary/20">
-                            <Upload className="text-white w-8 h-8" />
+                        <div className="w-20 h-20 rounded-full gradient-bg flex items-center justify-center shadow-2xl shadow-primary/40 group-hover:scale-110 transition-transform">
+                            <Upload className="text-white w-10 h-10" />
                         </div>
                         <div className="text-center">
-                            <h3 className="text-xl font-semibold mb-2">Upload your Selfie</h3>
-                            <p className="text-white/60 text-sm">Drag & drop or click to browse</p>
+                            <h3 className="text-2xl font-bold mb-2">Upload your Selfie</h3>
+                            <p className="text-white/40 text-sm">Better quality means better scores</p>
                         </div>
-                        <div className="flex gap-4 mt-2">
-                            <button
-                                onClick={(e) => { e.stopPropagation(); startCamera(); }}
-                                className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 text-sm font-medium transition-colors"
-                            >
-                                <Camera size={18} /> Take Photo
-                            </button>
-                        </div>
-                        <input
-                            type="file"
-                            ref={fileInputRef}
-                            onChange={handleFileChange}
-                            accept="image/*"
-                            className="hidden"
-                        />
+                        <button
+                            onClick={(e) => { e.stopPropagation(); startCamera(); }}
+                            className="flex items-center gap-2 px-6 py-3 rounded-full bg-primary hover:bg-primary-light text-white font-bold transition-all shadow-lg shadow-primary/20"
+                        >
+                            <Camera size={20} /> Use Camera
+                        </button>
+                        <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
                     </motion.div>
                 )}
 
                 {isCameraActive && (
                     <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
+                        initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        className="relative glass rounded-3xl overflow-hidden aspect-[3/4]"
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        className="relative flex flex-col items-center gap-8"
                     >
-                        <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover" />
-                        <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-4">
+                        {/* Circular Camera Mask */}
+                        <div className="relative w-72 h-72 md:w-80 md:h-80 rounded-full overflow-hidden border-4 transition-colors duration-500 shadow-2xl"
+                            style={{ borderColor: isFaceCorrect ? '#22c55e' : '#ef4444' }}>
+                            <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover mirror-mode" />
+
+                            {/* Scanning Guide Overlay */}
+                            <div className="absolute inset-0 pointer-events-none border-[40px] border-black/40 rounded-full" />
+
+                            {/* Animated Pulse Ring */}
+                            <motion.div
+                                animate={{ scale: [1, 1.05, 1], opacity: [0.3, 0.6, 0.3] }}
+                                transition={{ repeat: Infinity, duration: 2 }}
+                                className="absolute inset-0 rounded-full border-2"
+                                style={{ borderColor: isFaceCorrect ? '#22c55e' : '#ef4444' }}
+                            />
+                        </div>
+
+                        <div className="text-center space-y-2">
+                            <h4 className={`text-lg font-bold ${isFaceCorrect ? 'text-green-500' : 'text-red-500'}`}>
+                                {isFaceCorrect ? "Perfect! Stay still" : "Align your face in the circle"}
+                            </h4>
+                            <p className="text-white/40 text-xs uppercase tracking-widest">
+                                AI is checking facial alignment
+                            </p>
+                        </div>
+
+                        <div className="flex gap-6">
                             <button
                                 onClick={capturePhoto}
-                                className="w-16 h-16 rounded-full border-4 border-white flex items-center justify-center p-1"
+                                disabled={!isFaceCorrect}
+                                className={`w-20 h-20 rounded-full flex items-center justify-center p-1 transition-all ${isFaceCorrect ? 'scale-110 opacity-100' : 'scale-90 opacity-50'}`}
+                                style={{ background: isFaceCorrect ? 'linear-gradient(135deg, #22c55e, #16a34a)' : 'rgba(255,255,255,0.1)' }}
                             >
-                                <div className="w-full h-full rounded-full bg-white shadow-lg" />
+                                <div className="w-16 h-16 rounded-full border-4 border-white/30" />
                             </button>
                             <button
                                 onClick={stopCamera}
-                                className="absolute right-6 bottom-8 w-10 h-10 rounded-full bg-red-500/80 flex items-center justify-center"
+                                className="w-14 h-14 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-white transition-colors"
                             >
                                 <X size={24} />
                             </button>
@@ -153,15 +272,17 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageSelected })
                     <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="relative glass rounded-3xl overflow-hidden"
+                        className="relative glass rounded-[40px] overflow-hidden group"
                     >
                         <img src={preview} alt="Preview" className="w-full aspect-[3/4] object-cover" />
-                        <button
-                            onClick={reset}
-                            className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/50 backdrop-blur-md flex items-center justify-center text-white"
-                        >
-                            <X size={20} />
-                        </button>
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <button
+                                onClick={reset}
+                                className="px-6 py-3 rounded-full bg-red-500 text-white font-bold flex items-center gap-2"
+                            >
+                                <X size={20} /> Change Photo
+                            </button>
+                        </div>
                     </motion.div>
                 )}
             </AnimatePresence>
