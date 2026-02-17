@@ -101,7 +101,7 @@ export default function Home() {
               <div className="w-8 h-8 rounded-lg gradient-bg flex items-center justify-center">
                 <Zap size={18} className="text-white" />
               </div>
-              <span className="font-bold tracking-tight text-xl">GlowUp</span>
+              <span className="font-bold tracking-tight text-xl">NextSelf</span>
             </div>
 
             {user ? (
@@ -137,7 +137,7 @@ export default function Home() {
             animate={{ opacity: 1, y: 0 }}
             className="text-5xl md:text-7xl font-black mb-6 tracking-tight"
           >
-            GlowUp <span className="gradient-text">AI</span>
+            Next<span className="gradient-text">Self</span>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -287,7 +287,7 @@ export default function Home() {
                 </div>
                 <div className="text-center">
                   <h3 className="text-2xl font-bold mb-2">Analyzing your features...</h3>
-                  <p className="text-white/60 animate-pulse">Running GlowUp algorithms on Groq Vision</p>
+                  <p className="text-white/60 animate-pulse">Running NextSelf algorithms on Groq Vision</p>
                 </div>
               </motion.section>
             )}
