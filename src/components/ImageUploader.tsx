@@ -24,19 +24,21 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageSelected })
 
         const setupDetector = async () => {
             try {
-                // Ensure dependencies are loaded
-                const faceDetection = await import("@tensorflow-models/face-detection");
                 const tf = await import("@tensorflow/tfjs-core");
                 await import("@tensorflow/tfjs-backend-webgl");
-                await tf.setBackend("webgl");
-                await tf.ready();
+                await import("@tensorflow/tfjs-backend-cpu");
+                const blazeface = await import("@tensorflow-models/blazeface");
 
-                const model = faceDetection.SupportedModels.MediaPipeFaceDetector;
-                detector = await faceDetection.createDetector(model, {
-                    runtime: "tfjs",
-                    maxFaces: 1,
-                    modelType: 'short' // Better for selfies
-                });
+                // Explicitly set backend
+                try {
+                    await tf.setBackend("webgl");
+                } catch (e) {
+                    console.warn("WebGL failed, using CPU");
+                    await tf.setBackend("cpu");
+                }
+
+                await tf.ready();
+                detector = await blazeface.load();
 
                 if (isComponentMounted && isCameraActive) {
                     detectFace();
@@ -56,28 +58,29 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageSelected })
                     return;
                 }
 
-                const faces = await detector.estimateFaces(videoRef.current, { flipHorizontal: false });
+                const predictions = await detector.estimateFaces(videoRef.current, false);
 
-                if (faces.length > 0) {
-                    const face = faces[0];
-                    const box = face.box;
+                if (predictions.length > 0) {
+                    const face = predictions[0];
+                    const start = face.topLeft as [number, number];
+                    const end = face.bottomRight as [number, number];
+
+                    const width = end[0] - start[0];
+                    const height = end[1] - start[1];
+                    const faceCenterX = start[0] + width / 2;
+                    const faceCenterY = start[1] + height / 2;
+
                     const videoWidth = videoRef.current.videoWidth;
                     const videoHeight = videoRef.current.videoHeight;
 
-                    // Relaxed constraints for better UX
-                    const faceCenterX = box.xMin + box.width / 2;
-                    const faceCenterY = box.yMin + box.height / 2;
-
-                    // Use 30% tolerance instead of 15%
-                    const centerToleranceX = videoWidth * 0.30;
-                    const centerToleranceY = videoHeight * 0.30;
+                    const centerToleranceX = videoWidth * 0.25;
+                    const centerToleranceY = videoHeight * 0.25;
 
                     const isCentered = Math.abs(faceCenterX - videoWidth / 2) < centerToleranceX &&
                         Math.abs(faceCenterY - videoHeight / 2) < centerToleranceY;
 
-                    // Face should be at least 20% of the screen height
-                    const minFaceSize = videoHeight * 0.20;
-                    const isLargeEnough = box.height > minFaceSize;
+                    const minFaceSize = videoHeight * 0.25;
+                    const isLargeEnough = height > minFaceSize;
 
                     setIsFaceCorrect(isCentered && isLargeEnough);
                 } else {

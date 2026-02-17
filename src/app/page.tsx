@@ -309,7 +309,11 @@ export default function Home() {
                 </div>
 
                 <div className="glass rounded-[32px] p-8 md:p-12 border-primary/20 shadow-2xl shadow-primary/10">
-                  <ScoreDisplay score={result.score} summary={result.summary} />
+                  <ScoreDisplay
+                    score={result.score}
+                    summary={result.summary}
+                    detailedScores={result.detailedScores}
+                  />
                   <div className="w-full h-px bg-white/5 my-12" />
                   <Roadmap steps={result.roadmap} />
                 </div>
