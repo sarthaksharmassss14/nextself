@@ -32,14 +32,29 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageSelected })
     };
 
     const startCamera = async () => {
-        setIsCameraActive(true);
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } });
-            if (videoRef.current) {
-                videoRef.current.srcObject = stream;
-            }
-        } catch (err) {
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    facingMode: "user",
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                }
+            });
+            setIsCameraActive(true);
+            setTimeout(() => {
+                if (videoRef.current) {
+                    videoRef.current.srcObject = stream;
+                }
+            }, 100);
+        } catch (err: any) {
             console.error("Camera error:", err);
+            if (err.name === "NotReadableError") {
+                alert("Camera is already in use by another application. Please close it and try again.");
+            } else if (err.name === "NotAllowedError") {
+                alert("Camera permission denied. Please allow camera access in your browser settings.");
+            } else {
+                alert("Could not start camera. Please try uploading a file instead.");
+            }
             setIsCameraActive(false);
         }
     };
