@@ -199,21 +199,25 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({ onImageSelected })
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.9 }}
-                        className="glass p-10 rounded-[40px] border-dashed border-2 flex flex-col items-center justify-center gap-8 cursor-pointer hover:bg-white/10 transition-all group"
+                        className="glass p-12 md:p-16 rounded-[48px] border-dashed border-2 border-white/10 flex flex-col items-center justify-center gap-10 cursor-pointer hover:bg-white/[0.05] hover:border-primary/50 transition-all group relative overflow-hidden"
                         onClick={() => fileInputRef.current?.click()}
                     >
-                        <div className="w-20 h-20 rounded-full gradient-bg flex items-center justify-center shadow-2xl shadow-primary/40 group-hover:scale-110 transition-transform">
-                            <Upload className="text-white w-10 h-10" />
+                        {/* Subtle background glow */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                        <div className="relative w-24 h-24 rounded-3xl gradient-bg flex items-center justify-center shadow-[0_0_50px_rgba(139,92,246,0.3)] group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
+                            <Upload className="text-white w-12 h-12" />
                         </div>
-                        <div className="text-center">
-                            <h3 className="text-2xl font-bold mb-2">Upload your Selfie</h3>
-                            <p className="text-white/40 text-sm">Better quality means better scores</p>
+                        <div className="text-center relative">
+                            <h3 className="text-3xl font-black mb-3 tracking-tight">Upload your Selfie</h3>
+                            <p className="text-white/30 text-xs uppercase tracking-[0.2em] font-bold">Neural scan requires high resolution</p>
                         </div>
                         <button
                             onClick={(e) => { e.stopPropagation(); startCamera(); }}
-                            className="flex items-center gap-2 px-6 py-3 rounded-full bg-primary hover:bg-primary-light text-white font-bold transition-all shadow-lg shadow-primary/20"
+                            className="relative flex items-center gap-3 px-8 py-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 text-white font-black uppercase tracking-widest text-[10px] transition-all group/btn active:scale-95"
                         >
-                            <Camera size={20} /> Use Camera
+                            <Camera size={18} className="text-primary group-hover/btn:scale-110 transition-transform" />
+                            Launch Camera
                         </button>
                         <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
                     </motion.div>

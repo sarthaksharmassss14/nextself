@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { groq, ANALYSIS_MODEL } from "@/lib/groq";
+import { groq, ANALYSIS_MODEL, VISION_MODEL } from "@/lib/groq";
 import { db } from "@/lib/firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import crypto from "crypto";
@@ -20,65 +20,89 @@ export async function POST(req: NextRequest) {
         // Cache check
         const cachedDoc = await getDoc(doc(db, "analyses", hash));
         if (cachedDoc.exists()) {
-            return NextResponse.json(cachedDoc.data());
+            const data = cachedDoc.data();
+            if (data.detailedScores) {
+                return NextResponse.json(data);
+            }
         }
 
-        // DeepFace-style Intelligence (Calculated locally)
-        // High-precision distribution for realistic scoring
-        const scores = {
-            jawline: Math.floor(Math.random() * (92 - 75 + 1) + 75),
-            skin: Math.floor(Math.random() * (88 - 68 + 1) + 68),
-            masculinity: Math.floor(Math.random() * (95 - 80 + 1) + 80),
-            cheekbones: Math.floor(Math.random() * (90 - 70 + 1) + 70),
-            hair: Math.floor(Math.random() * (85 - 65 + 1) + 65),
-        };
-
-        const totalScore = Math.round(Object.values(scores).reduce((a, b) => a + b, 0) / Object.values(scores).length);
-
-        const roadmapPrompt = `
-            You are NextSelf AI, a premium grooming and self-improvement coach.
-            A user has uploaded a selfie for analysis. Our local engine calculated these scores:
-            - Jawline Sharpness: ${scores.jawline}/100
-            - Skin Quality: ${scores.skin}/100
-            - Masculinity Index: ${scores.masculinity}/100
-            - Cheekbone Prominence: ${scores.cheekbones}/100
-            - Hair Quality: ${scores.hair}/100
-            - Total Overall Score: ${totalScore}/100
-
-            Based on these realistic scores, generate a HIGHLY PERSONALIZED transformation roadmap.
-            Be specific. Be honest but constructive.
+        // AI-Driven Face Analysis (No more Math.random)
+        const base64Image = buffer.toString("base64");
+        const analysisPrompt = `
+            You are a professional human facial aesthetics and grooming analyzer.
+            
+            STEP 1: Check if the uploaded image is a CLEAR HUMAN SELFIE or FRONT-FACING PORTRAIT.
+            If the image is an animal, a tree, a cartoon, an object, or too blurry to see a face, stop immediately.
+            
+            STEP 2: If valid, provide a DEEP AND COMPREHENSIVE analysis of the selfie. 
+            The goal is to provide elite-level value to the user.
+            
+            1. Analyze facial structure (jawline, cheekbones, etc.) with technical precision.
+            2. Evaluate grooming standards (hair texture, skin health, beard/masculinity).
+            3. Provide a long, detailed "summary" that feels premium and insightful.
+            
+            For the "roadmap", provide EXACTLY 6-7 HIGHLY SPECIFIC steps.
+            EACH suggestion MUST BE A DETAILED PARAGRAPH (minimum 30-50 words). 
+            Explain THE WHY and THE HOW. Mention specific products (e.g., niacinamide, hyaluronic acid) or specific exercises (e.g., tongue posture - mewing).
+            
+            STRICTLY DO NOT USE ANY EMOJIS IN YOUR RESPONSE.
+            CATEGORIES MUST BE TITLE-CASED.
 
             Respond STRICTLY in this JSON format:
             {
-              "score": ${totalScore},
+              "isValid": true,
+              "error": null,
+              "score": 78,
               "detailedScores": {
-                "jawline": ${scores.jawline},
-                "skin": ${scores.skin},
-                "masculinity": ${scores.masculinity},
-                "cheekbones": ${scores.cheekbones},
-                "hair": ${scores.hair}
+                "jawline": 85,
+                "skin": 70,
+                "masculinity": 88,
+                "cheekbones": 72,
+                "hair": 75
               },
               "roadmap": [
-                { "category": "category name", "suggestion": "..." }
+                { "category": "Category Name", "suggestion": "A full, detailed paragraph explaining the exact science and steps..." }
               ],
-              "summary": "..."
+              "summary": "A long, architectural, and premium 3-4 sentence analysis."
             }
         `;
 
         const response = await groq.chat.completions.create({
-            model: ANALYSIS_MODEL,
-            messages: [{ role: "user", content: roadmapPrompt }],
+            model: VISION_MODEL,
+            messages: [
+                {
+                    role: "user",
+                    content: [
+                        { type: "text", text: analysisPrompt },
+                        {
+                            type: "image_url",
+                            image_url: { url: `data:image/jpeg;base64,${base64Image}` },
+                        },
+                    ],
+                },
+            ],
             response_format: { type: "json_object" },
         });
 
-        const result = JSON.parse(response.choices[0].message.content || "{}");
+        const content = response.choices[0].message.content || "{}";
+        console.log("AI Analysis Result:", content);
+        const result = JSON.parse(content);
+
+        // Validation to ensure it's a human face
+        if (result.isValid === false) {
+            return NextResponse.json({ error: result.error || "Bhai, ye insaan ka chehra nahi lag raha. Kripya ek saaf selfie upload karein." }, { status: 400 });
+        }
+
+        if (!result.detailedScores) {
+            throw new Error("AI failed to provide detailed scores.");
+        }
 
         // Save to DB
         await setDoc(doc(db, "analyses", hash), {
             ...result,
             createdAt: new Date().toISOString(),
             imageHash: hash,
-            metrics: scores
+            metrics: result.detailedScores
         });
 
         return NextResponse.json(result);

@@ -6,7 +6,7 @@ import { ImageUploader } from "@/components/ImageUploader";
 import { ScoreDisplay } from "@/components/ScoreDisplay";
 import { Roadmap } from "@/components/Roadmap";
 import { useAuth } from "@/lib/AuthContext";
-import { Sparkles, ArrowLeft, RefreshCw, Zap, LogOut, LogIn } from "lucide-react";
+import { Sparkles, ArrowLeft, RefreshCw, Zap, LogOut, LogIn, X } from "lucide-react";
 
 export default function Home() {
   const { user, login, logout, loginWithEmail, registerWithEmail, loading: authLoading } = useAuth();
@@ -86,38 +86,38 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-black text-white selection:bg-primary/30">
+    <main className="min-h-screen mesh-gradient text-white selection:bg-primary/30">
       {/* Background Decor */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/20 blur-[120px] rounded-full" />
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-secondary/20 blur-[120px] rounded-full" />
+        <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-primary/10 blur-[150px] rounded-full" />
+        <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-secondary/10 blur-[150px] rounded-full" />
       </div>
 
       <div className="relative z-10 container mx-auto px-6 py-12 max-w-4xl">
         {/* Header */}
-        <header className="flex flex-col items-center text-center mb-16">
-          <div className="w-full flex justify-between items-center mb-12">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg gradient-bg flex items-center justify-center">
-                <Zap size={18} className="text-white" />
+        <header className="flex flex-col items-center text-center mb-24">
+          <div className="w-full flex justify-between items-center mb-16">
+            <div className="flex items-center gap-2 group cursor-pointer">
+              <div className="w-10 h-10 rounded-xl gradient-bg flex items-center justify-center shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform">
+                <Zap size={20} className="text-white" />
               </div>
-              <span className="font-bold tracking-tight text-xl">NextSelf</span>
+              <span className="font-black tracking-tight text-2xl bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent">NextSelf</span>
             </div>
 
             {user ? (
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 glass px-4 py-2 rounded-2xl">
                 <div className="hidden md:flex flex-col items-end">
-                  <span className="text-xs font-medium text-white/90">{user.displayName || user.email?.split('@')[0]}</span>
+                  <span className="text-xs font-bold text-white">{user.displayName || user.email?.split('@')[0]}</span>
                   <span className="text-[10px] text-white/40">{user.email}</span>
                 </div>
                 {user.photoURL ? (
-                  <img src={user.photoURL} alt="User" className="w-8 h-8 rounded-full border border-white/10" />
+                  <img src={user.photoURL} alt="User" className="w-9 h-9 rounded-xl border border-white/10" />
                 ) : (
-                  <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-bold">
+                  <div className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-xs font-black">
                     {user.displayName?.[0] || user.email?.[0]?.toUpperCase()}
                   </div>
                 )}
-                <button onClick={logout} className="p-2 rounded-full hover:bg-white/5 text-white/60 hover:text-white transition-colors">
+                <button onClick={logout} className="p-2 rounded-xl hover:bg-white/5 text-white/40 hover:text-red-400 transition-all">
                   <LogOut size={18} />
                 </button>
               </div>
@@ -125,118 +125,125 @@ export default function Home() {
           </div>
 
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 mb-6"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-white/[0.03] border border-white/10 mb-8 backdrop-blur-md"
           >
-            <Sparkles className="text-primary w-4 h-4" />
-            <span className="text-xs font-bold uppercase tracking-widest text-primary-light">AI Scaling Vision</span>
+            <Sparkles className="text-primary w-4 h-4 animate-pulse" />
+            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white/60">AI Neural Engine v2.0</span>
           </motion.div>
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-5xl md:text-7xl font-black mb-6 tracking-tight"
+            className="text-6xl md:text-8xl font-black mb-8 tracking-tighter"
           >
-            Next<span className="gradient-text">Self</span>
+            Next<span className="gradient-text drop-shadow-[0_0_30px_rgba(59,130,246,0.3)]">Self</span>
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-white/60 text-lg md:text-xl max-w-xl mx-auto"
+            className="text-white/40 text-lg md:text-xl max-w-2xl mx-auto uppercase tracking-[0.3em] font-medium leading-relaxed"
           >
-            {user ? "Discover your true potential. Get an instant attractiveness score." : "Sign in to discover your potential and get a custom roadmap."}
+            {user ? "Discover your true potential." : "Sign in to discover your potential and get a custom roadmap."}
           </motion.p>
         </header>
 
         {!user ? (
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            className="glass p-8 md:p-12 rounded-[32px] border-primary/20 max-w-md mx-auto w-full"
+            className="glass p-10 md:p-14 rounded-[48px] border-white/10 max-w-md mx-auto w-full shadow-2xl relative overflow-hidden group"
           >
-            <div className="w-16 h-16 rounded-2xl gradient-bg flex items-center justify-center mx-auto mb-6 shadow-xl shadow-primary/20">
-              <Zap size={32} className="text-white" />
-            </div>
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-secondary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
-            <h3 className="text-2xl font-bold mb-8 text-center">{isRegister ? "Create Account" : "Welcome Back"}</h3>
+            <div className="relative z-10 text-center">
+              <div className="w-20 h-20 rounded-[24px] gradient-bg flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-primary/30 transform group-hover:rotate-[10deg] transition-transform">
+                <Zap size={40} className="text-white" />
+              </div>
 
-            <div className="space-y-4">
-              {isEmailMode ? (
-                <form onSubmit={handleEmailAuth} className="space-y-4">
-                  {isRegister && (
+              <h3 className="text-3xl font-black mb-10">{isRegister ? "Create Account" : "Access Engine"}</h3>
+
+              <div className="space-y-4">
+                {isEmailMode ? (
+                  <form onSubmit={handleEmailAuth} className="space-y-4">
+                    {isRegister && (
+                      <input
+                        type="text"
+                        placeholder="Full Name"
+                        required
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        className="w-full px-6 py-4 rounded-2xl bg-white/[0.03] border border-white/10 focus:border-primary/50 outline-none transition-all placeholder:text-white/20"
+                      />
+                    )}
                     <input
-                      type="text"
-                      placeholder="Full Name"
+                      type="email"
+                      placeholder="Email Address"
                       required
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      className="w-full px-5 py-4 rounded-2xl bg-white/5 border border-white/10 focus:border-primary/50 outline-none transition-all"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="w-full px-6 py-4 rounded-2xl bg-white/[0.03] border border-white/10 focus:border-primary/50 outline-none transition-all placeholder:text-white/20"
                     />
-                  )}
-                  <input
-                    type="email"
-                    placeholder="Email Address"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-5 py-4 rounded-2xl bg-white/5 border border-white/10 focus:border-primary/50 outline-none transition-all"
-                  />
-                  <input
-                    type="password"
-                    placeholder="Password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-5 py-4 rounded-2xl bg-white/5 border border-white/10 focus:border-primary/50 outline-none transition-all"
-                  />
-                  <button
-                    type="submit"
-                    className="w-full py-4 rounded-2xl gradient-bg text-white font-bold text-lg"
-                  >
-                    {isRegister ? "Sign Up" : "Sign In"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setIsEmailMode(false)}
-                    className="w-full text-sm text-white/40 hover:text-white transition-colors"
-                  >
-                    ← Back to other options
-                  </button>
-                </form>
-              ) : (
-                <>
-                  <button
-                    onClick={login}
-                    className="w-full py-4 rounded-2xl bg-white text-black font-bold text-lg flex items-center justify-center gap-3 hover:bg-white/90 transition-all"
-                  >
-                    <img src="https://www.google.com/favicon.ico" className="w-5 h-5" alt="" />
-                    Continue with Google
-                  </button>
-                  <button
-                    onClick={() => setIsEmailMode(true)}
-                    className="w-full py-4 rounded-2xl bg-white/5 border border-white/10 text-white font-semibold flex items-center justify-center gap-3 hover:bg-white/10 transition-all"
-                  >
-                    Continue with Email
-                  </button>
-                </>
-              )}
-            </div>
+                    <input
+                      type="password"
+                      placeholder="Password"
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full px-6 py-4 rounded-2xl bg-white/[0.03] border border-white/10 focus:border-primary/50 outline-none transition-all placeholder:text-white/20"
+                    />
+                    <button
+                      type="submit"
+                      className="w-full py-5 rounded-2xl gradient-bg text-white font-black text-lg shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all"
+                    >
+                      {isRegister ? "Start Transformation" : "Instant Access"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsEmailMode(false)}
+                      className="w-full text-[10px] font-black uppercase tracking-[0.2em] text-white/30 hover:text-white transition-colors pt-4"
+                    >
+                      ← Back to methods
+                    </button>
+                  </form>
+                ) : (
+                  <>
+                    <button
+                      onClick={login}
+                      className="w-full py-5 rounded-2xl bg-white text-black font-black text-lg flex items-center justify-center gap-4 hover:bg-white/90 transition-all shadow-xl shadow-white/5 active:scale-95"
+                    >
+                      <img src="https://www.google.com/favicon.ico" className="w-5 h-5" alt="" />
+                      Google Login
+                    </button>
+                    <button
+                      onClick={() => setIsEmailMode(true)}
+                      className="w-full py-5 rounded-2xl bg-white/[0.03] border border-white/10 text-white font-black text-lg flex items-center justify-center gap-4 hover:bg-white/10 transition-all active:scale-95"
+                    >
+                      <Zap size={22} className="text-primary" />
+                      Email & Pass
+                    </button>
+                  </>
+                )}
+              </div>
 
-            <div className="mt-8 pt-8 border-t border-white/5 text-center text-sm">
-              <span className="text-white/40">
-                {isRegister ? "Already have an account?" : "Don't have an account?"}
-              </span>
-              <button
-                onClick={() => setIsRegister(!isRegister)}
-                className="ml-2 text-primary font-bold hover:underline"
-              >
-                {isRegister ? "Sign In" : "Sign Up"}
-              </button>
+              <div className="mt-10 pt-10 border-t border-white/5 text-xs">
+                <span className="text-white/30 uppercase tracking-widest font-bold">
+                  {isRegister ? "Identified before?" : "New to the system?"}
+                </span>
+                <button
+                  onClick={() => setIsRegister(!isRegister)}
+                  className="ml-3 text-primary font-black uppercase tracking-widest hover:text-primary-light transition-colors"
+                >
+                  {isRegister ? "Login" : "Join Now"}
+                </button>
+              </div>
             </div>
 
             {error && (
-              <p className="mt-4 text-red-500 text-sm font-medium text-center">{error}</p>
+              <p className="mt-6 text-red-500 text-xs font-bold uppercase tracking-widest animate-shake">
+                {error}
+              </p>
             )}
           </motion.div>
         ) : (
@@ -247,23 +254,31 @@ export default function Home() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className="space-y-12"
+                className="space-y-24"
               >
                 <ImageUploader onImageSelected={analyzeImage} />
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-12">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-12">
                   {[
-                    { icon: Zap, title: "Instant Analysis", desc: "Powered by Groq Vision for real-time feedback." },
-                    { icon: RefreshCw, title: "Consistent", desc: "Same face, same score. No random ratings." },
-                    { icon: Sparkles, title: "Growth Roadmap", desc: "Actionable tips tailored just for you." }
+                    { icon: Zap, title: "Neural Analysis", desc: "Powered by Groq Vision for real-time anatomical feedback." },
+                    { icon: RefreshCw, title: "Zero Variance", desc: "Same face, same score. Removing human bias from aesthetics." },
+                    { icon: Sparkles, title: "Pro Roadmap", desc: "Actionable transformation steps tailored for your architecture." }
                   ].map((feature, i) => (
-                    <div key={i} className="glass p-6 rounded-2xl border border-white/5">
-                      <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center mb-4">
-                        <feature.icon className="text-primary w-5 h-5" />
+                    <motion.div
+                      key={i}
+                      whileHover={{ y: -10 }}
+                      className="glass p-8 rounded-[32px] border-white/5 group hover:border-primary/20 transition-all cursor-default"
+                    >
+                      <div className="w-14 h-14 rounded-2xl bg-white/[0.03] border border-white/10 flex items-center justify-center mb-6 group-hover:gradient-bg group-hover:scale-110 transition-all duration-500 shadow-xl">
+                        <feature.icon className="text-primary w-6 h-6 group-hover:text-white transition-colors" />
                       </div>
-                      <h4 className="font-bold mb-2">{feature.title}</h4>
-                      <p className="text-white/40 text-sm leading-relaxed">{feature.desc}</p>
-                    </div>
+                      <h4 className="text-lg font-black mb-3 bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent group-hover:from-white group-hover:to-white">
+                        {feature.title}
+                      </h4>
+                      <p className="text-white/30 text-sm leading-relaxed font-medium group-hover:text-white/50 transition-colors">
+                        {feature.desc}
+                      </p>
+                    </motion.div>
                   ))}
                 </div>
               </motion.section>
@@ -275,19 +290,40 @@ export default function Home() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="flex flex-col items-center justify-center py-20 gap-8"
+                className="flex flex-col items-center justify-center py-20 gap-12"
               >
-                <div className="relative w-64 h-80 rounded-3xl overflow-hidden glass scanning-effect">
-                  <div className="absolute inset-0 bg-primary/10 animate-pulse" />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-primary animate-bounce">
-                      <Zap size={48} fill="currentColor" />
+                <div className="relative w-72 h-96 rounded-[40px] overflow-hidden glass border-white/10 shadow-[0_0_80px_rgba(139,92,246,0.15)]">
+                  {/* Digital Scanning Grid */}
+                  <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10" />
+                  <div className="absolute inset-0 bg-gradient-to-b from-primary/20 via-transparent to-primary/20 animate-pulse" />
+
+                  {/* Moving Scan Line */}
+                  <motion.div
+                    animate={{ top: ['0%', '100%', '0%'] }}
+                    transition={{ repeat: Infinity, duration: 3, ease: "linear" }}
+                    className="absolute left-0 right-0 h-[2px] bg-primary shadow-[0_0_15px_#8b5cf6] z-20"
+                  />
+
+                  <div className="absolute inset-0 flex items-center justify-center flex-col gap-4">
+                    <div className="p-6 rounded-full bg-primary/20 border border-primary/30 animate-bounce">
+                      <Zap size={48} className="text-white fill-white shadow-xl" />
                     </div>
                   </div>
                 </div>
-                <div className="text-center">
-                  <h3 className="text-2xl font-bold mb-2">Analyzing your features...</h3>
-                  <p className="text-white/60 animate-pulse">Running NextSelf algorithms on Groq Vision</p>
+                <div className="text-center space-y-4">
+                  <h3 className="text-3xl font-black tracking-tight bg-gradient-to-r from-white via-primary-light to-white bg-clip-text text-transparent animate-gradient-x">
+                    Neural Processing...
+                  </h3>
+                  <div className="flex flex-col items-center gap-2">
+                    <p className="text-white/30 text-xs font-black uppercase tracking-[0.4em]">Running Deep-Bio Analysis</p>
+                    <div className="w-48 h-1 bg-white/5 rounded-full overflow-hidden">
+                      <motion.div
+                        animate={{ x: ['-100%', '100%'] }}
+                        transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+                        className="w-1/2 h-full bg-gradient-to-r from-transparent via-primary to-transparent"
+                      />
+                    </div>
+                  </div>
                 </div>
               </motion.section>
             )}
@@ -308,7 +344,7 @@ export default function Home() {
                   </button>
                 </div>
 
-                <div className="glass rounded-[32px] p-8 md:p-12 border-primary/20 shadow-2xl shadow-primary/10">
+                <div className="glass rounded-[48px] p-8 md:p-14 border-white/10 shadow-2xl shadow-primary/5">
                   <ScoreDisplay
                     score={result.score}
                     summary={result.summary}
@@ -324,17 +360,34 @@ export default function Home() {
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="mt-8 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-center text-sm"
+                className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm"
               >
-                {error}
-                <button onClick={reset} className="ml-4 underline font-bold">Try again</button>
+                <motion.div
+                  initial={{ scale: 0.9, y: 20 }}
+                  animate={{ scale: 1, y: 0 }}
+                  className="glass p-8 rounded-[32px] border-red-500/20 max-w-sm w-full text-center shadow-2xl shadow-red-500/10"
+                >
+                  <div className="w-16 h-16 rounded-2xl bg-red-500/10 flex items-center justify-center mx-auto mb-6">
+                    <X size={32} className="text-red-500" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-3">Analysis Failed</h3>
+                  <p className="text-white/60 text-sm leading-relaxed mb-8">
+                    {error}
+                  </p>
+                  <button
+                    onClick={reset}
+                    className="w-full py-4 rounded-2xl bg-red-500 hover:bg-red-600 text-white font-bold transition-all shadow-lg shadow-red-500/20"
+                  >
+                    Try Again
+                  </button>
+                </motion.div>
               </motion.div>
             )}
           </AnimatePresence>
         )}
 
         <footer className="mt-24 text-center text-white/20 text-xs">
-          Built with Groq Vision & Next.js • © 2026 NextSelf
+          Built with Groq  • © 2026 NextSelf
         </footer>
       </div>
     </main>

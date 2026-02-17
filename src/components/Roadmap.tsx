@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import { CheckCircle2, ChevronRight, Lightbulb } from "lucide-react";
+import { CheckCircle2, ChevronRight, Lightbulb, RefreshCw } from "lucide-react";
 
 interface RoadmapStep {
     category: string;
@@ -30,21 +30,21 @@ export const Roadmap: React.FC<RoadmapProps> = ({ steps }) => {
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: index * 0.1 }}
-                        className="glass p-5 rounded-2xl flex gap-5 group hover:border-primary/50 transition-colors"
+                        className="glass p-6 rounded-[32px] border border-white/5 backdrop-blur-md flex gap-6 group hover:border-primary/40 hover:bg-white/[0.05] transition-all cursor-default"
                     >
                         <div className="flex flex-col items-center pt-1">
-                            <div className="w-6 h-6 rounded-full border-2 border-primary/50 flex items-center justify-center text-[10px] font-bold text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                            <div className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-xs font-black text-white group-hover:bg-primary group-hover:text-white group-hover:border-primary transition-all shadow-xl">
                                 {index + 1}
                             </div>
                             {index !== steps.length - 1 && (
-                                <div className="w-px h-full bg-white/10 mt-2" />
+                                <div className="w-px h-full bg-gradient-to-b from-white/10 to-transparent mt-3" />
                             )}
                         </div>
                         <div className="pb-2">
-                            <h4 className="text-lg font-semibold text-white/90 mb-1 group-hover:text-primary transition-colors">
+                            <h4 className="text-xl font-bold bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent mb-2 group-hover:from-primary-light group-hover:to-primary transition-all">
                                 {step.category}
                             </h4>
-                            <p className="text-white/60 text-sm leading-relaxed">
+                            <p className="text-white/40 text-sm leading-relaxed group-hover:text-white/60 transition-colors font-medium">
                                 {step.suggestion}
                             </p>
                         </div>
@@ -53,13 +53,13 @@ export const Roadmap: React.FC<RoadmapProps> = ({ steps }) => {
             </div>
 
             <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 1 }}
-                className="p-6 rounded-3xl bg-primary/10 border border-primary/20 text-center"
+                className="p-6 rounded-[32px] bg-white/[0.02] border border-white/5 text-center backdrop-blur-sm"
             >
-                <p className="text-sm font-medium text-primary-light flex items-center justify-center gap-2">
-                    <CheckCircle2 size={16} /> Follow this roadmap for 30 days to see visible results.
+                <p className="text-xs font-black text-white/40 uppercase tracking-[0.2em] flex items-center justify-center gap-3">
+                    <RefreshCw size={14} className="animate-spin-slow" /> Follow this roadmap for 30 days to see visible results.
                 </p>
             </motion.div>
         </div>

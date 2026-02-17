@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "NextSelf | AI Selfie Scorer & Roadmap",
-  description: "Get an instant attractiveness score and a custom roadmap to level up your look with Groq Vision.",
+  description: "Get a custom roadmap to level up your look with Groq Vision AI.",
 };
 
 import { AuthProvider } from "@/lib/AuthContext";
