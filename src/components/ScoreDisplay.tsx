@@ -143,15 +143,15 @@ export const ScoreDisplay: React.FC<ScoreDisplayProps> = ({ score, summary, deta
     return (
         <div className="flex flex-col items-center gap-16 py-10 w-full">
             <div className="flex flex-wrap justify-center gap-10 md:gap-14 w-full max-w-6xl px-4">
-                <defs className="absolute">
-                    <svg width="0" height="0">
+                <svg width="0" height="0" style={{ position: 'absolute' }}>
+                    <defs>
                         <linearGradient id="main-score-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
                             <stop offset="0%" stopColor="#6366f1" />
                             <stop offset="50%" stopColor="#93c5fd" />
                             <stop offset="100%" stopColor="#3b82f6" />
                         </linearGradient>
-                    </svg>
-                </defs>
+                    </defs>
+                </svg>
 
                 {metrics.map((m, i) => (
                     <motion.div

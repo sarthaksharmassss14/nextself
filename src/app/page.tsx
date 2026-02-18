@@ -5,8 +5,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ImageUploader } from "@/components/ImageUploader";
 import { ScoreDisplay } from "@/components/ScoreDisplay";
 import { Roadmap } from "@/components/Roadmap";
+import { FitnessDashboard } from "@/components/FitnessDashboard";
 import { useAuth } from "@/lib/AuthContext";
-import { Sparkles, ArrowLeft, RefreshCw, Zap, LogOut, LogIn, X } from "lucide-react";
+import { Sparkles, ArrowLeft, RefreshCw, Zap, LogOut, LogIn, X, Shirt, Dumbbell, Gamepad2, UserCircle } from "lucide-react";
 
 export default function Home() {
   const { user, login, logout, loginWithEmail, registerWithEmail, loading: authLoading } = useAuth();
@@ -14,6 +15,7 @@ export default function Home() {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
+  const [selectedModule, setSelectedModule] = useState<string | null>(null);
 
   // Auth Form State
   const [isEmailMode, setIsEmailMode] = useState(false);
@@ -75,6 +77,7 @@ export default function Home() {
     setResult(null);
     setImage(null);
     setError(null);
+    setSelectedModule(null);
   };
 
   if (authLoading) {
@@ -93,7 +96,7 @@ export default function Home() {
         <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-secondary/10 blur-[150px] rounded-full" />
       </div>
 
-      <div className="relative z-10 container mx-auto px-6 py-12 max-w-4xl">
+      <div className={`relative z-10 container mx-auto px-6 py-12 transition-all duration-700 ${selectedModule ? 'max-w-[1800px]' : 'max-w-4xl'}`}>
         {/* Header */}
         <header className="flex flex-col items-center text-center mb-24">
           <div className="w-full flex justify-between items-center mb-16">
@@ -248,40 +251,107 @@ export default function Home() {
           </motion.div>
         ) : (
           <AnimatePresence mode="wait">
-            {!result && !isAnalyzing && (
+            {/* Dashboard Selection */}
+            {!selectedModule && (
+              <motion.div
+                key="dashboard"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="grid grid-cols-1 md:grid-cols-2 gap-8"
+              >
+                {[
+                  { id: 'face', title: "Face Analysis", desc: "AI-powered facial harmony & proportions.", icon: UserCircle, color: "from-blue-500 to-cyan-500" },
+                  { id: 'style', title: "Dressing Stylist", desc: "Curated outfit suggestions for your body.", icon: Shirt, color: "from-purple-500 to-pink-500" },
+                  { id: 'fitness', title: "Fitness Tracker", desc: "Bio-metric tracking & workout roadmap.", icon: Dumbbell, color: "from-orange-500 to-red-500" },
+                  { id: 'hobby', title: "Hobby Finder", desc: "Discover passions based on your persona.", icon: Gamepad2, color: "from-emerald-500 to-teal-500" }
+                ].map((mod) => (
+                  <button
+                    key={mod.id}
+                    onClick={() => setSelectedModule(mod.id)}
+                    className="glass p-10 rounded-[48px] border-white/5 group hover:border-white/20 transition-all text-left relative overflow-hidden active:scale-[0.98]"
+                  >
+                    <div className={`absolute inset-0 bg-gradient-to-br ${mod.color} opacity-0 group-hover:opacity-5 transition-opacity`} />
+                    <div className="relative z-10">
+                      <div className={`w-16 h-16 rounded-[24px] gradient-bg flex items-center justify-center mb-8 shadow-2xl transition-transform group-hover:scale-110 group-hover:rotate-3`}>
+                        <mod.icon size={32} className="text-white" />
+                      </div>
+                      <h3 className="text-2xl font-black mb-3">{mod.title}</h3>
+                      <p className="text-white/40 text-sm font-medium leading-relaxed">{mod.desc}</p>
+
+                      <div className="mt-8 flex items-center gap-2 text-xs font-black uppercase tracking-widest text-primary group-hover:gap-4 transition-all">
+                        Launch Module <ArrowLeft size={14} className="rotate-180" />
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </motion.div>
+            )}
+
+            {/* Face Analysis Flow */}
+            {selectedModule === 'face' && !result && !isAnalyzing && (
               <motion.section
                 key="uploader"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className="space-y-24"
+                className="space-y-16"
               >
-                <ImageUploader onImageSelected={analyzeImage} />
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-12">
-                  {[
-                    { icon: Zap, title: "Neural Analysis", desc: "Powered by Groq Vision for real-time anatomical feedback." },
-                    { icon: RefreshCw, title: "Zero Variance", desc: "Same face, same score. Removing human bias from aesthetics." },
-                    { icon: Sparkles, title: "Pro Roadmap", desc: "Actionable transformation steps tailored for your architecture." }
-                  ].map((feature, i) => (
-                    <motion.div
-                      key={i}
-                      whileHover={{ y: -10 }}
-                      className="glass p-8 rounded-[32px] border-white/5 group hover:border-primary/20 transition-all cursor-default"
-                    >
-                      <div className="w-14 h-14 rounded-2xl bg-white/[0.03] border border-white/10 flex items-center justify-center mb-6 group-hover:gradient-bg group-hover:scale-110 transition-all duration-500 shadow-xl">
-                        <feature.icon className="text-primary w-6 h-6 group-hover:text-white transition-colors" />
-                      </div>
-                      <h4 className="text-lg font-black mb-3 bg-gradient-to-r from-white to-white/60 bg-clip-text text-transparent group-hover:from-white group-hover:to-white">
-                        {feature.title}
-                      </h4>
-                      <p className="text-white/30 text-sm leading-relaxed font-medium group-hover:text-white/50 transition-colors">
-                        {feature.desc}
-                      </p>
-                    </motion.div>
-                  ))}
+                <div className="flex justify-start">
+                  <button
+                    onClick={() => setSelectedModule(null)}
+                    className="flex items-center gap-2 text-white/40 hover:text-white transition-colors text-sm font-medium"
+                  >
+                    <ArrowLeft size={16} /> Back to Dashboard
+                  </button>
                 </div>
+                <ImageUploader onImageSelected={analyzeImage} />
               </motion.section>
+            )}
+
+            {/* Fitness Tracker Flow */}
+            {selectedModule === 'fitness' && (
+              <motion.section
+                key="fitness"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="space-y-16"
+              >
+                <div className="flex justify-start">
+                  <button
+                    onClick={() => setSelectedModule(null)}
+                    className="flex items-center gap-2 text-white/40 hover:text-white transition-colors text-sm font-medium"
+                  >
+                    <ArrowLeft size={16} /> Back to Dashboard
+                  </button>
+                </div>
+                <FitnessDashboard />
+              </motion.section>
+            )}
+
+            {/* Other Modules Placeholders */}
+            {selectedModule && selectedModule !== 'face' && selectedModule !== 'fitness' && (
+              <motion.div
+                key="coming-soon"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="glass p-20 rounded-[48px] text-center border-white/10"
+              >
+                <div className="w-24 h-24 rounded-[32px] bg-white/5 border border-white/10 flex items-center justify-center mx-auto mb-8">
+                  <Zap size={40} className="text-primary animate-pulse" />
+                </div>
+                <h2 className="text-4xl font-black mb-6 uppercase tracking-tighter">System Offline</h2>
+                <p className="text-white/40 max-w-md mx-auto mb-10 text-lg">
+                  The {selectedModule} module is currently being calibrated by the AI Engine. Check back soon for full integration.
+                </p>
+                <button
+                  onClick={() => setSelectedModule(null)}
+                  className="px-8 py-4 rounded-2xl gradient-bg text-white font-black uppercase tracking-widest text-sm shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
+                >
+                  Return to Dashboard
+                </button>
+              </motion.div>
             )}
 
             {isAnalyzing && (
@@ -340,7 +410,7 @@ export default function Home() {
                     onClick={reset}
                     className="flex items-center gap-2 text-white/40 hover:text-white transition-colors text-sm font-medium"
                   >
-                    <ArrowLeft size={16} /> Start Over
+                    <ArrowLeft size={16} /> Exit Analysis
                   </button>
                 </div>
 
